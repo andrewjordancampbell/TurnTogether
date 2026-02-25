@@ -9,21 +9,25 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: club }, { data: progress }] = await Promise.all([
-    supabase
-      .from('clubs')
-      .select(`
-        *,
-        current_book:books(*),
-        club_members(*, profile:profiles(*))
-      `)
-      .eq('id', Number(id))
-      .single(),
-    supabase
-      .from('reading_progress')
-      .select('*, profile:profiles(*)')
-      .eq('club_id', Number(id)),
-  ])
+  // First fetch the club to get its current_book_id
+  const { data: club } = await supabase
+    .from('clubs')
+    .select(`
+      *,
+      current_book:books(*),
+      club_members(*, profile:profiles(*))
+    `)
+    .eq('id', Number(id))
+    .single()
+
+  // Then fetch progress only for the current book (not all books ever read)
+  const progress = club?.current_book_id
+    ? (await supabase
+        .from('reading_progress')
+        .select('*, profile:profiles(*)')
+        .eq('club_id', Number(id))
+        .eq('book_id', club.current_book_id)).data
+    : null
 
   if (!club) notFound()
 

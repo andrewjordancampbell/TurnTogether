@@ -61,16 +61,22 @@ export function ReadingRoom({ clubId, userId, displayName }: {
     e.preventDefault()
     if (!input.trim() || !channelRef.current) return
 
+    const message: ChatMessage = {
+      userId,
+      displayName,
+      text: input,
+      timestamp: new Date().toISOString(),
+    }
+
     channelRef.current.send({
       type: 'broadcast',
       event: 'chat',
-      payload: {
-        userId,
-        displayName,
-        text: input,
-        timestamp: new Date().toISOString(),
-      },
+      payload: message,
     })
+
+    // Supabase broadcast doesn't echo back to the sender,
+    // so add the message to local state immediately.
+    setMessages((prev) => [...prev, message])
     setInput('')
   }
 
