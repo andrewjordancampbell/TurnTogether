@@ -6,11 +6,16 @@ vi.mock("./actions", () => ({
   loginWithGoogle: vi.fn(),
 }));
 
+vi.mock("@/components/error-message", () => ({
+  ErrorMessage: () => null,
+}));
+
 import LoginPage from "./page";
 
 describe("LoginPage", () => {
-  it("renders email/password login fields and signup link", () => {
-    render(<LoginPage />);
+  it("renders email/password login fields and signup link", async () => {
+    const page = await LoginPage({ searchParams: Promise.resolve({}) });
+    render(page);
 
     expect(screen.getByRole("heading", { name: /log in to turntogether/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();

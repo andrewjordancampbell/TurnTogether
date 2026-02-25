@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { searchBooks } from '@/lib/books/open-library'
+import { searchBooksAction } from '@/app/books/search/actions'
 import { BookCard } from './book-card'
 import type { BookSearchResult } from '@/lib/books/types'
 
@@ -14,7 +14,7 @@ export function BookSearch({ onSelect }: { onSelect?: (book: BookSearchResult) =
     e.preventDefault()
     if (!query.trim()) return
     setLoading(true)
-    const books = await searchBooks(query)
+    const books = await searchBooksAction(query)
     setResults(books)
     setLoading(false)
   }

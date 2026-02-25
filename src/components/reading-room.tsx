@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface Participant {
   userId: string
@@ -25,9 +26,11 @@ export function ReadingRoom({ clubId, userId, displayName }: {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [supabase] = useState(() => createClient())
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   useEffect(() => {
     const channel = supabase.channel(`room-${clubId}`)
+    channelRef.current = channel
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -49,15 +52,16 @@ export function ReadingRoom({ clubId, userId, displayName }: {
       })
 
     return () => {
+      channelRef.current = null
       supabase.removeChannel(channel)
     }
   }, [clubId, userId, displayName, supabase])
 
   function sendMessage(e: React.FormEvent) {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || !channelRef.current) return
 
-    supabase.channel(`room-${clubId}`).send({
+    channelRef.current.send({
       type: 'broadcast',
       event: 'chat',
       payload: {
@@ -73,7 +77,7 @@ export function ReadingRoom({ clubId, userId, displayName }: {
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       {/* Participants sidebar */}
-      <div className="w-48 rounded-lg border p-4">
+      <div className="hidden w-48 rounded-lg border p-4 sm:block">
         <h3 className="mb-3 text-sm font-semibold">
           Reading Now ({participants.length})
         </h3>

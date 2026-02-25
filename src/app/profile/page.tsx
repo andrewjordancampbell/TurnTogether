@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -7,28 +8,34 @@ export default async function ProfilePage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  const { data: memberships } = await supabase
-    .from('club_members')
-    .select('club:clubs(name)')
-    .eq('user_id', user.id)
-
-  const { data: progress } = await supabase
-    .from('reading_progress')
-    .select('*, book:books(*)')
-    .eq('user_id', user.id)
+  const [{ data: profile }, { data: memberships }, { data: progress }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('club_members')
+      .select('club:clubs(name)')
+      .eq('user_id', user.id),
+    supabase
+      .from('reading_progress')
+      .select('*, book:books(*)')
+      .eq('user_id', user.id),
+  ])
 
   const booksCompleted = progress?.filter((p: { percent_complete: number }) => p.percent_complete >= 100).length ?? 0
   const booksInProgress = progress?.filter((p: { percent_complete: number }) => p.percent_complete < 100).length ?? 0
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-2 text-2xl font-bold">{profile?.display_name}</h1>
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{profile?.display_name}</h1>
+        <Link href="/profile/edit"
+          className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+          Edit Profile
+        </Link>
+      </div>
       {profile?.bio && <p className="mb-6 text-gray-600">{profile.bio}</p>}
 
       <div className="mb-8 grid grid-cols-3 gap-4">

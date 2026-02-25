@@ -1,27 +1,42 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { JoinClubButton } from '@/components/join-club-button'
+import { ProgressUpdater } from '@/components/progress-updater'
 
 export default async function ClubPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: club } = await supabase
-    .from('clubs')
-    .select(`
-      *,
-      current_book:books(*),
-      club_members(*, profile:profiles(*))
-    `)
-    .eq('id', id)
-    .single()
+  const [{ data: club }, { data: progress }] = await Promise.all([
+    supabase
+      .from('clubs')
+      .select(`
+        *,
+        current_book:books(*),
+        club_members(*, profile:profiles(*))
+      `)
+      .eq('id', Number(id))
+      .single(),
+    supabase
+      .from('reading_progress')
+      .select('*, profile:profiles(*)')
+      .eq('club_id', Number(id)),
+  ])
 
   if (!club) notFound()
 
-  const { data: progress } = await supabase
-    .from('reading_progress')
-    .select('*, profile:profiles(*)')
-    .eq('club_id', id)
+  const isMember = club.club_members?.some(
+    (m: { user_id: string }) => m.user_id === user?.id
+  )
+  const isAdmin = club.club_members?.some(
+    (m: { user_id: string; role: string }) => m.user_id === user?.id && m.role === 'admin'
+  )
+
+  const userProgress = progress?.find(
+    (p: { user_id: string }) => p.user_id === user?.id
+  )
 
   return (
     <div className="mx-auto max-w-4xl p-6">
@@ -33,15 +48,41 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
         <span className="mt-2 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs">
           {club.is_public ? 'Public' : 'Private'} &middot; {club.club_members?.length ?? 0} members
         </span>
-        <div className="mt-3 flex gap-3">
-          <Link href={`/clubs/${id}/discussions`}
-            className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800">
-            Discussions
-          </Link>
-          <Link href={`/clubs/${id}/room`}
-            className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
-            Reading Room
-          </Link>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {isMember ? (
+            <>
+              <Link href={`/clubs/${id}/discussions`}
+                className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800">
+                Discussions
+              </Link>
+              <Link href={`/clubs/${id}/room`}
+                className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+                Reading Room
+              </Link>
+              <Link href={`/clubs/${id}/chapters`}
+                className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+                Chapters
+              </Link>
+              {isAdmin && (
+                <Link href={`/clubs/${id}/set-book`}
+                  className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+                  Set Current Book
+                </Link>
+              )}
+              {isAdmin && club.invite_code && (
+                <Link href={`/clubs/${id}/settings`}
+                  className="rounded border px-3 py-1 text-sm hover:bg-gray-50">
+                  Settings
+                </Link>
+              )}
+            </>
+          ) : user ? (
+            <JoinClubButton clubId={club.id} />
+          ) : (
+            <Link href="/login" className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800">
+              Log in to join
+            </Link>
+          )}
         </div>
       </div>
 
@@ -73,6 +114,18 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {isMember && (
+            <div className="mt-4">
+              <ProgressUpdater
+                clubId={club.id}
+                bookId={club.current_book.id}
+                currentChapter={userProgress?.current_chapter}
+                currentPage={userProgress?.current_page ?? undefined}
+                totalPages={club.current_book.page_count ?? undefined}
+              />
             </div>
           )}
         </div>

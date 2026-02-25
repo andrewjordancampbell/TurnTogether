@@ -1,13 +1,23 @@
 import Link from "next/link";
 import { login, loginWithGoogle } from "./actions";
+import { ErrorMessage } from "@/components/error-message";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>
+}) {
+  const { error, next } = await searchParams;
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <h1 className="text-center text-2xl font-bold text-stone-900">Log in to TurnTogether</h1>
 
+        <ErrorMessage error={error} />
+
         <form className="space-y-4">
+          {next && <input type="hidden" name="next" value={next} />}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-stone-700">
               Email
@@ -41,6 +51,12 @@ export default function LoginPage() {
             Log in
           </button>
         </form>
+
+        <div className="text-center">
+          <Link href="/forgot-password" className="text-sm text-stone-500 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { loginWithGoogle } from "../login/actions";
 import { signup } from "./actions";
+import { ErrorMessage } from "@/components/error-message";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error } = await searchParams;
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <h1 className="text-center text-2xl font-bold text-stone-900">Join TurnTogether</h1>
+
+        <ErrorMessage error={error} />
 
         <form className="space-y-4">
           <div>

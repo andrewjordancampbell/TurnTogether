@@ -3,23 +3,34 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { loginSchema } from "@/lib/validations";
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  if (!email || !password) {
-    redirect("/login?error=Email+and+password+are+required");
+  const result = loginSchema.safeParse({ email, password });
+  if (!result.success) {
+    redirect(`/login?error=${encodeURIComponent(result.error.issues[0].message)}`);
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email: result.data.email,
+    password: result.data.password,
+  });
 
   if (error) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/", "layout");
+
+  const next = formData.get("next") as string | null;
+  // Open-redirect protection: must start with / but not //
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    redirect(next);
+  }
   redirect("/dashboard");
 }
 

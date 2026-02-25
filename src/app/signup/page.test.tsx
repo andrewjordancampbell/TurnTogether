@@ -9,11 +9,16 @@ vi.mock("../login/actions", () => ({
   loginWithGoogle: vi.fn(),
 }));
 
+vi.mock("@/components/error-message", () => ({
+  ErrorMessage: () => null,
+}));
+
 import SignupPage from "./page";
 
 describe("SignupPage", () => {
-  it("renders the signup form fields", () => {
-    render(<SignupPage />);
+  it("renders the signup form fields", async () => {
+    const page = await SignupPage({ searchParams: Promise.resolve({}) });
+    render(page);
 
     expect(screen.getByRole("heading", { name: /join turntogether/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();

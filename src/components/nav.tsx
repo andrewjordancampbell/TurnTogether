@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { MobileNav } from './mobile-nav'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -9,7 +10,9 @@ export async function Nav() {
     <nav className="border-b">
       <div className="mx-auto flex max-w-4xl items-center justify-between p-4">
         <Link href="/" className="text-lg font-bold">TurnTogether</Link>
-        <div className="flex items-center gap-4 text-sm">
+
+        {/* Desktop nav */}
+        <div className="hidden items-center gap-4 text-sm md:flex">
           <Link href="/discover" className="hover:underline">Discover</Link>
           {user ? (
             <>
@@ -29,6 +32,9 @@ export async function Nav() {
             </>
           )}
         </div>
+
+        {/* Mobile nav */}
+        <MobileNav isAuthenticated={!!user} />
       </div>
     </nav>
   )

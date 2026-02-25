@@ -1,6 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Database } from '@/lib/supabase/database.types'
+
+type ClubRow = Database['public']['Tables']['clubs']['Row']
+type BookRow = Database['public']['Tables']['books']['Row']
+
+interface ClubWithBook extends ClubRow {
+  current_book: BookRow | null
+  club_members: { count: number }[]
+}
+
+interface MembershipWithClub {
+  club: ClubWithBook | null
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -20,8 +33,9 @@ export default async function DashboardPage() {
     `)
     .eq('user_id', user.id)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clubs = memberships?.map((m: any) => m.club).filter(Boolean) ?? []
+  const clubs = (memberships as unknown as MembershipWithClub[] | null)
+    ?.map((m) => m.club)
+    .filter(Boolean) as ClubWithBook[] ?? []
 
   return (
     <div className="mx-auto max-w-4xl p-6">
@@ -43,8 +57,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {clubs.map((club: any) => (
+          {clubs.map((club) => (
             <Link key={club.id} href={`/clubs/${club.id}`}
               className="block rounded-lg border p-4 hover:bg-gray-50">
               <div className="flex items-start justify-between">
