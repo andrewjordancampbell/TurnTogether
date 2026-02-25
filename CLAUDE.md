@@ -3,10 +3,15 @@
 ## Stack
 Next.js 16.1.6 + React 19 + Supabase + Tailwind CSS 4 + Zod v4 + Vitest
 
+## Deployment
+- **Live site:** https://turn-together.vercel.app
+- **GitHub:** andrewjordancampbell/TurnTogether (auto-deploys `master` → Vercel)
+- **Supabase:** Remote DB with 8 migrations applied
+
 ## Commands
 - `npm run dev` — start dev server
 - `npm run build` — production build (must pass before merging)
-- `npm run test:run` — run all tests
+- `npm run test:run` — run all tests (20 tests across 11 files)
 - `npx supabase db push --linked` — push migrations to remote Supabase
 
 ## Conventions
@@ -16,6 +21,7 @@ Next.js 16.1.6 + React 19 + Supabase + Tailwind CSS 4 + Zod v4 + Vitest
 - Validation schemas: `src/lib/validations.ts` (Zod v4 — uses `.issues` not `.errors`)
 - URL params are strings — `Number(id)` before passing to Supabase `.eq()` calls
 - Database types: manual `Database` interface at `src/lib/supabase/database.types.ts`
+- Supabase broadcast does NOT echo to sender — always add sent messages to local state
 
 ## Supabase RLS Rules (CRITICAL)
 
@@ -56,3 +62,10 @@ $$ language plpgsql security definer stable;
 | `is_public_club(club_id)` | Is this club public? |
 
 Use these in new RLS policies instead of writing inline subqueries.
+
+## Known Issues / Future Work
+- Chapters are manual only (Open Library TOC has ~5-10% coverage)
+- `percent_complete` is 0 when book has no `page_count`
+- Reading room chat is ephemeral (no persistence across refreshes)
+- `reading_rooms` DB table exists but is unused
+- OpenClaw integration planned (Micah)
