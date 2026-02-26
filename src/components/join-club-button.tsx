@@ -17,7 +17,7 @@ export function JoinClubButton({ clubId }: { clubId: number }) {
         <p className="mb-1 text-xs text-red-600">{state.error}</p>
       )}
       <button type="submit" disabled={pending}
-        className="rounded bg-black px-3 py-1 text-sm text-white hover:bg-gray-800 disabled:opacity-50">
+        className="rounded bg-coral px-3 py-1 text-sm text-white hover:bg-rose disabled:opacity-50">
         {pending ? 'Joining...' : 'Join Club'}
       </button>
     </form>

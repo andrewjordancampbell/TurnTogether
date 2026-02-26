@@ -25,22 +25,22 @@ export function MobileNav({ isAuthenticated }: { isAuthenticated: boolean }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-14 z-50 border-b bg-white p-4">
+        <div className="absolute left-0 right-0 top-14 z-50 border-b border-purple/30 bg-navy p-4">
           <div className="flex flex-col gap-3 text-sm">
-            <Link href="/discover" onClick={() => setOpen(false)} className="hover:underline">Discover</Link>
+            <Link href="/discover" onClick={() => setOpen(false)} className="text-peach hover:underline">Discover</Link>
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard" onClick={() => setOpen(false)} className="hover:underline">Dashboard</Link>
-                <Link href="/books/search" onClick={() => setOpen(false)} className="hover:underline">Search Books</Link>
-                <Link href="/profile" onClick={() => setOpen(false)} className="hover:underline">Profile</Link>
+                <Link href="/dashboard" onClick={() => setOpen(false)} className="text-peach hover:underline">Dashboard</Link>
+                <Link href="/books/search" onClick={() => setOpen(false)} className="text-peach hover:underline">Search Books</Link>
+                <Link href="/profile" onClick={() => setOpen(false)} className="text-peach hover:underline">Profile</Link>
                 <form action="/auth/signout" method="post">
-                  <button className="hover:underline">Sign out</button>
+                  <button className="text-peach hover:underline">Sign out</button>
                 </form>
               </>
             ) : (
               <>
-                <Link href="/login" onClick={() => setOpen(false)} className="hover:underline">Log in</Link>
-                <Link href="/signup" onClick={() => setOpen(false)} className="rounded bg-black px-3 py-1 text-center text-white hover:bg-gray-800">
+                <Link href="/login" onClick={() => setOpen(false)} className="text-peach hover:underline">Log in</Link>
+                <Link href="/signup" onClick={() => setOpen(false)} className="rounded bg-coral px-3 py-1 text-center text-white hover:bg-rose">
                   Sign up
                 </Link>
               </>
